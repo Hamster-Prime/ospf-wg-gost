@@ -1,4 +1,4 @@
-#!binbash
+#!/bin/bash
 while true; do
     echo -------------------
     echo 请选择要执行的操作
