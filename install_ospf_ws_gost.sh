@@ -11,6 +11,9 @@ ip_address=$(ip addr show eth0 | grep -oP 'inet \K[\d.]+')
 echo "请输入WireGuard本端IP："
 read wgip
 
+echo "请输入WireGuard本端端口："
+read wgport
+
 echo "请输入WireGuard本端私钥："
 read privateKey
 
@@ -60,7 +63,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/gost -L relay+tls://:65534/$wgip:65535
+ExecStart=/usr/local/bin/gost -L relay+tls://:56789/$wgip:$wgport
 Restart=always
 
 [Install]
@@ -77,7 +80,7 @@ sysctl -p
 tee /etc/wireguard/wg0.conf <<EOF
 [Interface]
 Address = $wgip/24
-ListenPort = 65535
+ListenPort = $wgport
 PrivateKey = $privateKey
 Table = off
 MTU = 1280
