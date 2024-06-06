@@ -52,9 +52,17 @@ done
 
 #安装Gost
 chmod u+x gost
-
 cp gost /usr/local/bin
-
+mkdir /etc/gost
+tee /etc/gost/gost.json <<EOF
+{
+    "Debug": false,
+    "Retries": 2,
+    "ServeNodes": [
+        "relay+tls://:65534/$wgip:$wgport"
+    ]
+}
+EOF
 tee /etc/systemd/system/gost.service > /dev/null <<EOF
 [Unit]
 Description=GOST-Server of GO simple tunnel
@@ -63,7 +71,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/gost -L relay+tls://:56789/$wgip:$wgport
+ExecStart=/usr/local/bin/gost -C /etc/gost/gost.json
 Restart=always
 
 [Install]
@@ -72,11 +80,9 @@ EOF
 
 #开启转发
 echo 'net.ipv4.ip_forward = 1' | tee -a /etc/sysctl.conf
-
 sysctl -p
 
 #配置WireGuard服务信息
-
 tee /etc/wireguard/wg0.conf <<EOF
 [Interface]
 Address = $wgip/24
@@ -92,9 +98,7 @@ EOF
 
 #配置OSPF服务
 git clone https://github.com/dndx/nchnroutes.git
-
 mv /root/nchnroutes/Makefile /root/nchnroutes/Makefile.orig
-
 tee /root/nchnroutes/Makefile <<EOF
 produce:
 	git pull
@@ -106,12 +110,10 @@ produce:
 	# sudo birdc configure
 	# sudo birdc6 configure
 EOF
-
 make -C /root/nchnroutes
 
 #配置Bird2服务
 mv /etc/bird/bird.conf /etc/bird/bird.conf.orig
-
 tee /etc/bird/bird.conf <<EOF
 router id $routeid;
 protocol device {
@@ -136,7 +138,6 @@ protocol ospf v2 {
         };
 }
 EOF
-
 #防火墙配置持久化
 tee /etc/iptables/rules.v4 <<EOF
 *nat
@@ -163,21 +164,18 @@ COMMIT
 -A FORWARD -p tcp -m tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
 COMMIT
 EOF
-
 update-alternatives --set iptables /usr/sbin/iptables-legacy
 iptables-restore < /etc/iptables/rules.v4
 
 #启动服务
 wg-quick up wg0
-
 systemctl start gost.service
-
 birdc c
 
 #开机自启
 systemctl enable wg-quick@wg0
-
 systemctl enable gost.service
+
 #完成安装
 echo "安装完成"
 echo "请执行 crontab -e 并在末尾添加 0 0 * * 0 make -C /root/nchnroutes"
