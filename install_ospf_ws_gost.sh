@@ -164,6 +164,7 @@ COMMIT
 COMMIT
 EOF
 
+update-alternatives --set iptables /usr/sbin/iptables-legacy
 iptables-restore < /etc/iptables/rules.v4
 
 #启动服务
