@@ -40,9 +40,20 @@ done
 
 #安装Gost
 chmod u+x gost
-
 cp gost /usr/local/bin
-
+mkdir /etc/gost
+tee /etc/gost/gost.json <<EOF
+{
+    "Debug": false,
+    "Retries": 2,
+    "ServeNodes": [
+        "udp://:65535"
+    ],
+    "ChainNodes": [
+        "relay+tls://$remoteip:56789"
+    ]
+}
+EOF
 tee /etc/systemd/system/gost.service > /dev/null <<EOF
 [Unit]
 Description=GOST-Server of GO simple tunnel
@@ -51,7 +62,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/gost -L udp://:56789 -F relay+tls://$remoteip:56789?keepalive=true&ttl=5s
+ExecStart=/usr/local/bin/gost -C /etc/gost/gost.json
 Restart=always
 
 [Install]
@@ -60,7 +71,6 @@ EOF
 
 #开启转发
 echo 'net.ipv4.ip_forward = 1' | tee -a /etc/sysctl.conf
-
 sysctl -p
 
 #开机自启
