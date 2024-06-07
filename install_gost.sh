@@ -50,7 +50,7 @@ tee /etc/gost/gost.json <<EOF
         "udp://:65535"
     ],
     "ChainNodes": [
-        "relay+tls://$remoteip:56789"
+        "relay+tls://$remoteip:56789?keepalive=true&ttl=5s"
     ]
 }
 EOF
