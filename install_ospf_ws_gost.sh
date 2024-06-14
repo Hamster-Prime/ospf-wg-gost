@@ -89,7 +89,7 @@ Address = $wgip/24
 ListenPort = $wgport
 PrivateKey = $privateKey
 Table = off
-MTU = 1280
+MTU = 1412
 
 [Peer]
 PublicKey = $publicKey
