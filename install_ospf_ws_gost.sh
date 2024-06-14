@@ -11,6 +11,9 @@ ip_address=$(ip addr show eth0 | grep -oP 'inet \K[\d.]+')
 echo "请输入WireGuard本端IP："
 read wgip
 
+echo "请输入WireGuard对端IP："
+read wgdip
+
 echo "请输入WireGuard本端端口："
 read wgport
 
@@ -93,7 +96,7 @@ MTU = 1412
 
 [Peer]
 PublicKey = $publicKey
-AllowedIPs = 0.0.0.0/0
+AllowedIPs = $wgdip/32, 224.0.0.5/32
 EOF
 
 #配置OSPF服务
